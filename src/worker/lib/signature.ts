@@ -13,7 +13,7 @@ const encoder = new TextEncoder();
 
 /**
  * Decodes the key inside a Standard Webhooks secret.
- * @param secret - A secret such as `whsec_MfKQ9r8GKYqrTwjUPD8ILPZIo2LaLaSw`.
+ * @param secret - A secret: `whsec_` followed by the base64-encoded key.
  * @returns The key bytes, or `null` when the secret has no `whsec_` prefix or the rest is not base64.
  */
 export const standardKey = (secret: string): Uint8Array | null => {
