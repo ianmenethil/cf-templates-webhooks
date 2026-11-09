@@ -1,0 +1,12 @@
+# pnpm only runs install scripts for packages listed here; Wrangler needs both.
+allowBuilds:
+  esbuild: true
+  workerd: true
+
+# ESLint and typescript-eslint pin minimatch 10, which has a denial-of-service advisory
+# (GHSA-g3hv-75wg-m249) fixed in 11.0.1.
+overrides:
+  minimatch: ^11.0.5
+  # eslint-plugin-tsdoc pins typescript-eslint 8.56, which does not accept the TypeScript 6 API
+  # used for linting; 8.72 does and is the same major version.
+  eslint-plugin-tsdoc>@typescript-eslint/utils: ^8.72.1

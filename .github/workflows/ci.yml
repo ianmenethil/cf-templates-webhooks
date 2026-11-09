@@ -1,0 +1,30 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: No known vulnerabilities in dependencies
+        run: pnpm audit
+      - name: Generated types are up to date
+        run: |
+          pnpm run cf-typegen
+          git diff --exit-code -- worker-configuration.d.ts
+      # Type-checks, lints (ESLint with TSDoc rules), builds the Worker and the admin panel, then does a dry-run deploy.
+      - run: pnpm run check
+      - run: pnpm test

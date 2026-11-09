@@ -1,0 +1,32 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "webhooks",
+  "main": "src/worker/index.ts",
+  "compatibility_date": "2026-11-01",
+  "observability": { "enabled": true },
+  // The admin panel (the React app built by Vite) is served at /admin. The Worker runs first on every
+  // /admin request so its Cloudflare Access check covers the panel's files as well as the API.
+  "assets": {
+    "directory": "./dist/client",
+    "binding": "ASSETS",
+    "run_worker_first": ["/admin", "/admin/*"]
+  },
+  "vars": {
+    // Company name shown in the admin panel.
+    "BRAND_NAME": "Menethil",
+    // Stored webhooks are deleted this many days after their latest delivery, by the daily cron below.
+    "RETENTION_DAYS": "30",
+    // Cloudflare Access protecting /admin: your team domain and the application's AUD tag.
+    // The admin panel refuses every request until both are set.
+    "ACCESS_TEAM_DOMAIN": "",
+    "ACCESS_AUD": ""
+  },
+  // No id: Wrangler creates the database on the first deploy. `pnpm run deploy` applies migrations/ to it.
+  "d1_databases": [{ "binding": "DB", "database_name": "webhooks", "migrations_dir": "migrations" }],
+  // 300 deliveries per minute for each endpoint, counted separately in each Cloudflare location.
+  "ratelimits": [{ "name": "RATE_LIMITER", "namespace_id": "1001", "simple": { "limit": 300, "period": 60 } }],
+  // Every day at 03:00 UTC the Worker deletes webhooks older than RETENTION_DAYS.
+  "triggers": { "crons": ["0 3 * * *"] },
+  // Local development only: simulates a signed-in Access user so /admin works under `pnpm run dev`.
+  "access": { "dev": { "aud": "local-dev", "identity": { "email": "admin@ianmenethil.com" } } }
+}
